@@ -82,61 +82,87 @@
     </footer>
 
     <script>
-        const form = document.getElementById('uploadForm');
-        const progressBar = document.querySelector('.progress-bar');
-        const progressContainer = document.getElementById('progress');
-        const message = document.getElementById('message');
-        const resetBtn = document.getElementById('resetBtn');
+    const form = document.getElementById('uploadForm');
+    const filesInput = document.getElementById('files');
+    const zipInput = document.getElementById('zip_file');
+    const progressBar = document.querySelector('.progress-bar');
+    const progressContainer = document.getElementById('progress');
+    const message = document.getElementById('message');
+    const resetBtn = document.getElementById('resetBtn');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    const apiUrl = 'https://compressor-api.onrender.com/upload';  // ajusta conforme necessário
 
-            message.textContent = '';
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
-            progressContainer.style.display = 'block';
+    // Bloquear inputs mutuamente
+    filesInput.addEventListener('change', () => {
+        if (filesInput.files.length > 0) {
+            zipInput.disabled = true;
+            zipInput.value = "";
+        } else {
+            zipInput.disabled = false;
+        }
+    });
 
-            const formData = new FormData(form);
+    zipInput.addEventListener('change', () => {
+        if (zipInput.files.length > 0) {
+            filesInput.disabled = true;
+            filesInput.value = "";
+        } else {
+            filesInput.disabled = false;
+        }
+    });
 
-            try {
-                const response = await fetch('https://compressor-api.onrender.com/upload', {
-                    method: 'POST',
-                    body: formData,
-                });
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Erro no servidor');
-                }
+        message.textContent = '';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        progressContainer.style.display = 'block';
 
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'imagens_comprimidas.zip';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
+        const formData = new FormData(form);
 
-                message.textContent = 'Ficheiros processados com sucesso!';
-                progressBar.style.width = '100%';
-                progressBar.textContent = '100%';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                body: formData,
+            });
 
-            } catch (error) {
-                message.textContent = 'Erro: ' + error.message;
-                progressBar.style.width = '0%';
-                progressBar.textContent = '0%';
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro no servidor');
             }
-        });
 
-        resetBtn.addEventListener('click', () => {
-            form.reset();
-            message.textContent = '';
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'imagens_comprimidas.zip';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            message.textContent = 'Ficheiros processados com sucesso!';
+            progressBar.style.width = '100%';
+            progressBar.textContent = '100%';
+
+        } catch (error) {
+            message.textContent = 'Erro: ' + error.message;
             progressBar.style.width = '0%';
             progressBar.textContent = '0%';
-            progressContainer.style.display = 'none';
-        });
-    </script>
+        }
+    });
+
+    resetBtn.addEventListener('click', () => {
+        form.reset();
+        message.textContent = '';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        progressContainer.style.display = 'none';
+        filesInput.disabled = false;
+        zipInput.disabled = false;
+    });
+</script>
+
 </body>
 </html>
