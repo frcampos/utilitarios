@@ -35,6 +35,22 @@
         </div>
       </div>
 
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="output_format" class="form-label">Formato de saída:</label>
+          <select class="form-select" id="output_format" name="output_format">
+            <option value="original">Manter formato original</option>
+            <option value="jpg">Converter para JPG</option>
+            <option value="png">Converter para PNG</option>
+            <option value="both">Gerar ambos (original + convertido)</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="dpi" class="form-label">DPI (resolução):</label>
+          <input type="number" class="form-control" id="dpi" name="dpi" min="72" max="600" placeholder="Opcional" />
+        </div>
+      </div>
+
       <div class="d-flex justify-content-between">
         <button type="submit" class="btn btn-primary">Comprimir</button>
         <button type="button" class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
@@ -99,4 +115,3 @@
   </script>
 </body>
 </html>
-
