@@ -57,13 +57,13 @@
   </form>
 
   <div class="progress my-3" id="progress" style="display:none;">
-    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;">0%</div>
+    <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%;">0%</div>
   </div>
 
   <div id="message" class="mt-3"></div>
 
   <footer class="mt-5 text-center text-muted">
-    &copy; Fernando Rui Campos - Ferramenta de conversão e compressão imagens  — Criação: 10 de junho 2025 — Atualização: 11 de junho 2025
+    &copy; Fernando Rui Campos et al. — Criação: 10 de junho 2025 — Atualização: 11 de junho 2025
   </footer>
 </div>
 
@@ -77,7 +77,7 @@
   const resetBtn = document.getElementById('resetBtn');
 
   const apiUrl = 'https://compressor-api.onrender.com/upload';
-  let dotInterval;
+  let dotInterval, barInterval, elapsed = 0;
 
   filesInput.addEventListener('change', () => {
     if (filesInput.files.length > 0) {
@@ -106,17 +106,31 @@
     }, 500);
   }
 
-  function stopDots() {
+  function startBar() {
+    elapsed = 0;
+    progressBar.style.width = '0%';
+    barInterval = setInterval(() => {
+      elapsed += 2500;
+      let percent = Math.min((elapsed / 20000) * 100, 100);
+      progressBar.style.width = percent + '%';
+      progressBar.textContent = Math.round(percent) + '%';
+      if (elapsed >= 20000) {
+        clearInterval(barInterval);
+      }
+    }, 2500);
+  }
+
+  function stopAll() {
     clearInterval(dotInterval);
+    clearInterval(barInterval);
   }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    // iniciar animação de dots
-    startDots();
-    progressBar.style.width = '0%';
-    progressBar.textContent = '0%';
+    message.textContent = '';
     progressContainer.style.display = 'block';
+    startDots();
+    startBar();
 
     const formData = new FormData(form);
 
@@ -127,8 +141,8 @@
         mode: 'cors'
       });
 
+      stopAll();
       if (!response.ok) {
-        stopDots();
         const errorData = await response.json();
         throw new Error(errorData.error || 'Erro no servidor');
       }
@@ -143,12 +157,11 @@
       a.remove();
       URL.revokeObjectURL(url);
 
-      stopDots();
       message.textContent = 'Ficheiros processados com sucesso!';
       progressBar.style.width = '100%';
       progressBar.textContent = '100%';
     } catch (error) {
-      stopDots();
+      stopAll();
       message.textContent = 'Erro: ' + error.message;
       progressBar.style.width = '0%';
       progressBar.textContent = '0%';
@@ -163,60 +176,8 @@
     progressContainer.style.display = 'none';
     filesInput.disabled = false;
     zipInput.disabled = false;
-    stopDots();
+    stopAll();
   });
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        message.textContent = '';
-        progressBar.style.width = '0%';
-        progressBar.textContent = '0%';
-        progressContainer.style.display = 'block';
-
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro no servidor');
-            }
-
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'imagens_comprimidas.zip';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-
-            message.textContent = 'Ficheiros processados com sucesso!';
-            progressBar.style.width = '100%';
-            progressBar.textContent = '100%';
-
-        } catch (error) {
-            message.textContent = 'Erro: ' + error.message;
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
-        }
-    });
-
-    resetBtn.addEventListener('click', () => {
-        form.reset();
-        message.textContent = '';
-        progressBar.style.width = '0%';
-        progressBar.textContent = '0%';
-        progressContainer.style.display = 'none';
-        filesInput.disabled = false;
-        zipInput.disabled = false;
-    });
 </script>
 
 </body>
